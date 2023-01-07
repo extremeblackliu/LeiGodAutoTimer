@@ -10,7 +10,7 @@
 struct LeiGodData
 {
     unsigned char m_pad0[0x12B8];
-    bool m_bSuspend;
+    bool m_bSuspend; //è®¿é—®çš„æ—¶å€™æ˜¯dwordï¼Œæœ‰å¯èƒ½çœŸä¸æ˜¯bool
     unsigned char m_pad1[0xA7F];
 
     bool Valid()
@@ -38,16 +38,20 @@ namespace Hooks
     using fnResumeUserTime = int(__cdecl *)();
     inline fnResumeUserTime oResumeUserTime = nullptr;
 
+    using fnOnExit = int(__fastcall*)(void*, void*, int, int, int, int);
+    inline fnOnExit oOnExit = nullptr;
+
 	void Initialize();
     void WaitForModule();
 
     int __fastcall hk_StartAccelerate(void* ecx, void* edx, int a2);
     int __fastcall hk_StopAccelerate(void* ecx, void* edx, int a2, int a3);
     int __cdecl hk_ResumeUserTime();
+    int __fastcall hk_OnExit(void* ecx, void* edx, int a2, int a3, int a4, int a5);
 
-    static void ThrowError() // Õâ¾ÍÊÇ¸öÀ¬»øº¯Êı
+    static void ThrowError() // è¿™å°±æ˜¯ä¸ªåƒåœ¾å‡½æ•°
     {
-        MessageBoxA(0, "³öÏÖÁËÒ»¸ö´íÎó£¬×Ô¶¯ÔİÍ£ÒÑ¾­²»ÔÙÆğ×÷ÓÃ", "À×Éñ×ÔÍ£²å¼ş", 0);
+        MessageBoxA(0, "å‡ºç°äº†ä¸€ä¸ªé”™è¯¯ï¼Œè‡ªåŠ¨æš‚åœå·²ç»ä¸å†èµ·ä½œç”¨", "é›·ç¥è‡ªåœæ’ä»¶", 0);
     }
 }
 
