@@ -20,11 +20,23 @@ struct LeiGodData
 
 };
 
+struct AccelerateInfo
+{
+    unsigned char m_pad0[0x3EA];
+    bool m_bInAccelerate;
+
+    bool Valid()
+    {
+        return (void*)this != nullptr;
+    }
+};
+
 namespace Hooks
 {
     inline void* LeiGodBase;
     inline bool m_bInAccelerate = false;
     inline LeiGodData* m_pLeiGodData = nullptr;
+    inline AccelerateInfo* m_pAccelerateInfo = nullptr;
     
     using fnStartAccelerate = int(__fastcall*)(void*, void*, int);
     inline fnStartAccelerate oStartAccelerate = nullptr;
