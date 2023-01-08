@@ -98,6 +98,8 @@ namespace Hooks
 
 	int __fastcall hk_StartAccelerate(void* ecx, void* edx, int a2)
 	{
+		m_pAccelerateInfo = (AccelerateInfo*)ecx; // 应该有个直接指向这个结构的指针，我懒得找了
+		
 		m_bInAccelerate = true;
 
 		oResumeUserTime();
@@ -121,7 +123,10 @@ namespace Hooks
 		// 避免误操作在没加速的时候反而打开了加速
 		if (!m_bInAccelerate)
 			return 0;
-
+		
+		if (m_pAccelerateInfo->Valid() && !m_pAccelerateInfo->m_bInAccelerate)
+			return 0;
+		
 		return oResumeUserTime();
 	}
 
