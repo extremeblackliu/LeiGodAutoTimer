@@ -7,6 +7,7 @@
 - 退出/关机 自动启停
 - 防止在没有加速的情况下打开计时开关
 
-我想知道你们是没有后期的人查代码的吗？
+# 一些有意思的信息
 
-有一串字符串中的 Pause 拼成了 Puase
+- 有一串字符串中的 Pause 拼成了 Puase
+- 雷神加速器使用了 https://github.com/netease-im/NIM_Duilib_Framework 作为框架
