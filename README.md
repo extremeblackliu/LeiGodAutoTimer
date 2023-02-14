@@ -14,4 +14,4 @@
 
 # 已知问题
 
-(Issues)[https://github.com/extremeblackliu/LeiGodAutoTimer/issues]
+见 Issues
