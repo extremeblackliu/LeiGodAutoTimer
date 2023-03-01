@@ -34,34 +34,34 @@ namespace Hooks
 		LeiGodBase = GetModuleHandle(NULL);
 		if (!LeiGodBase)
 		{
-			ThrowError();
+			ThrowError("错误:\n LeiGodBase 未找到");
 			return;
 		}
 
 		if (MH_Initialize() != MH_OK)
 		{
-			ThrowError();
+			ThrowError("错误:\n MinHook 初始化失败");
 			return;
 		}
 
 		void* StartAccelerate = PatternScan::Find(LeiGodBase, "55 8B EC 6A FF 68 ? ? ? ? 64 A1 ? ? ? ? 50 81 EC ? ? ? ? A1 ? ? ? ? 33 C5 89 45 F0 53 56 57 50 8D 45 F4 64 A3 ? ? ? ? 8B F9 8B 5D 08 8D 8D ? ? ? ? 8B 43 04 83 C0 08 50 E8 ? ? ? ? 68 ? ? ? ? 8D 85 ? ? ? ? C7 45 ? ? ? ? ? 6A 00 50");
 		if (!StartAccelerate)
 		{
-			ThrowError();
+			ThrowError("错误:\n函数 StartAccelerate 未找到");
 			return;
 		}
 
 		void* pResumeUserTime = function_walk(PatternScan::Find(LeiGodBase, "FF 90 ? ? ? ? 8B 46 04 6A 01"));
 		if (!pResumeUserTime)
 		{
-			ThrowError();
+			ThrowError("错误:\n函数 ResumeUserTime 未找到");
 			return;
 		}
 
 		void* pSuspendUserTime = function_walk((void*)((uintptr_t)pResumeUserTime + 0x4));
 		if (!pSuspendUserTime)
 		{
-			ThrowError();
+			ThrowError("错误:\n函数 SuspendUserTime 未找到");
 			return;
 		}
 		SuspendUserTime = (fnSuspendUserTime)pSuspendUserTime;
@@ -69,14 +69,21 @@ namespace Hooks
 		void* pStopAccelerate = PatternScan::Find(LeiGodBase, "55 8B EC 6A FF 68 ? ? ? ? 64 A1 ? ? ? ? 50 81 EC ? ? ? ? A1 ? ? ? ? 33 C5 89 45 F0 56 57 50 8D 45 F4 64 A3 ? ? ? ? 8B F9 E8 ? ? ? ? 8B C8");
 		if (!pStopAccelerate)
 		{
-			ThrowError();
+			ThrowError("错误:\n函数 StopAccelerate 未找到");
 			return;
 		}
 
 		void* pOnExit = function_walk(PatternScan::Find(LeiGodBase, "8B CE C7 86 ? ? ? ? ? ? ? ? E8 ? ? ? ? 8B 4D F4 64 89 0D ? ? ? ? 59 5E 8B 4D F0 33 CD E8 ? ? ? ? 8B E5 5D C2 04 00"));
 		if (!pOnExit)
 		{
-			ThrowError();
+			ThrowError("错误:\n函数 OnExit 未找到");
+			return;
+		}
+
+		void* pWndProc = PatternScan::Find(LeiGodBase, "55 8B EC 56 8B 75 10 57 8B 7D 0C 81 FF ? ? ? ? 74 60 81 FF ? ? ? ? 0F 85 ? ? ? ? 83 7E 14 00 75 1B 33 C9 8D 46 10 87 08 FF 75 14 56 57 FF 75 08 FF 15 ? ? ? ? 5F");
+		if (!pWndProc)
+		{
+			ThrowError("错误:\n函数 WndProc 未找到");
 			return;
 		}
 
@@ -91,6 +98,8 @@ namespace Hooks
 
 		MH_CreateHook(pOnExit, hk_OnExit, (void**)&oOnExit);
 
+		MH_CreateHook(pWndProc, hk_WndProc, (void**)&oWndProc);
+
 		MH_EnableHook(MH_ALL_HOOKS);
 
 		CloseHandle(CreateThread(0, 0, (LPTHREAD_START_ROUTINE)WaitForModule, 0, 0, 0));
@@ -98,12 +107,12 @@ namespace Hooks
 
 	int __fastcall hk_StartAccelerate(void* ecx, void* edx, int a2)
 	{
-		m_pAccelerateInfo = (AccelerateInfo*)ecx; // 应该有个直接指向这个结构的指针，我懒得找了
-		
+		m_pAccelerateInfo = (AccelerateInfo*)ecx; // 应该有个指向这个结构的指针，我懒得找了
+
 		m_bInAccelerate = true;
 
 		oResumeUserTime();
-		
+
 		return oStartAccelerate(ecx, edx, a2);
 	}
 
@@ -123,10 +132,10 @@ namespace Hooks
 		// 避免误操作在没加速的时候反而打开了加速
 		if (!m_bInAccelerate)
 			return 0;
-		
+
 		if (m_pAccelerateInfo->Valid() && !m_pAccelerateInfo->m_bInAccelerate)
 			return 0;
-		
+
 		return oResumeUserTime();
 	}
 
@@ -136,5 +145,19 @@ namespace Hooks
 		SuspendUserTime();
 
 		return oOnExit(ecx, edx, a2, a3, a4, a5);
+	}
+
+	LRESULT __stdcall hk_WndProc(HWND hwnd,UINT uMsg, WPARAM wParam, LPARAM lParam)
+	{
+		if (uMsg == WM_ENDSESSION && wParam == 1)
+		{
+			SuspendUserTime();
+		}
+		if (uMsg == WM_QUERYENDSESSION)
+		{
+			SuspendUserTime();
+		}
+
+		return oWndProc(hwnd, uMsg, wParam, lParam);
 	}
 }
