@@ -52,6 +52,9 @@ namespace Hooks
 
     using fnOnExit = int(__fastcall*)(void*, void*, int, int, int, int);
     inline fnOnExit oOnExit = nullptr;
+    
+    using fnWndProc = LRESULT(__stdcall*)(HWND, UINT, WPARAM, LPARAM);
+    inline fnWndProc oWndProc = nullptr;
 
 	void Initialize();
     void WaitForModule();
@@ -60,10 +63,11 @@ namespace Hooks
     int __fastcall hk_StopAccelerate(void* ecx, void* edx, int a2, int a3);
     int __cdecl hk_ResumeUserTime();
     int __fastcall hk_OnExit(void* ecx, void* edx, int a2, int a3, int a4, int a5);
+    LRESULT __stdcall hk_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-    static void ThrowError() // 这就是个垃圾函数
+    static void ThrowError(const char* cReason) // 这就是个垃圾函数
     {
-        MessageBoxA(0, "出现了一个错误，自动暂停已经不再起作用", "雷神自停插件", 0);
+        MessageBoxA(0, cReason, "雷神自停插件 - 错误", 0);
     }
 }
 
